@@ -10,16 +10,16 @@ void setup() {
     int d = 0;
 
 a = getal1 + getal2;
-  Serial.print(a);
+  Serial.println(a);
 
 b = getal1 * getal2;
-  Serial.print(b);
+  Serial.println(b);
 
 c = getal1 / getal2;
-  Serial.print(c);
+  Serial.println(c);
 
 d = getal1 - getal2;
-  Serial.print(d);
+  Serial.println(d);
 
 
 }
