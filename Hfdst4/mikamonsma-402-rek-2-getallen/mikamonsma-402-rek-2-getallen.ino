@@ -1,27 +1,36 @@
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
+// Void setup runs automatically once, it does this to initialize the settings
+void setup() { 
 
-  int getal1 = 5;
+  // Serial monitor defining. Runs at 9600 bits per second
+  Serial.begin(9600); 
+
+  // Define variables (arithmetic operations)
+  int getal1 = 5;       
     int getal2 = 8;
+
+    // The next few variables are used to store the results of different
+    // arithmetic operations
     int a = 0;
     int b = 0;
     int c = 0;
     int d = 0;
 
-a = getal1 + getal2;
+  // Addition operation
+  a = getal1 + getal2;
+  // Print value of the result above
   Serial.println(a);
 
-b = getal1 * getal2;
+  // Multiply
+  b = getal1 * getal2;
   Serial.println(b);
 
-c = getal1 / getal2;
+  // Division
+  c = getal1 / getal2;
   Serial.println(c);
 
-d = getal1 - getal2;
+  // Subtraction
+  d = getal1 - getal2;
   Serial.println(d);
-
-
 }
 
 void loop() {

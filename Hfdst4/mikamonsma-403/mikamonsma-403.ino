@@ -1,7 +1,8 @@
+// String concatenation
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
 
+  // Generate a random number between 5 and 15 (excl 15)
   int getal1 = random(5, 15);
   int getal2 = random(5, 15);
   int getal3 = random(5, 15);
@@ -17,9 +18,9 @@ void setup() {
   Serial.println("Basic math:");
 
   Serial.println("Reken operatoren");
-  Serial.println("+, -, /, *");
+  Serial.println("+, -, /, *"); // Addition, Minus, Divide, Multiply
 
-  Serial.println("");
+  Serial.println(""); // Empty line
 
   Serial.println( String(getal1) + " + " + String(getal2) + " == " + String(getal1 + getal2) );
   Serial.println( String(getal3) + " - " + String(getal4) + " == " + String(getal3 - getal4) );
@@ -29,11 +30,16 @@ void setup() {
 
   Serial.println("");
 
+  // Logical operators
+  // || is OR, && is AND, ! is NOT
   Serial.println("Vergelijkings- en logische operatoren");
-  Serial.println(">, >=, <, <=, ==, !=, => 1=true, 0=false");
+  // Greater than, Greater than or equal to, Less than, Less than or equal to, Equal to, 
+  //Not equal to, Greater than or equal to
+  Serial.println(">, >=, <, <=, ==, !=, => 1=true, 0=false"); 
 
   Serial.println("");
 
+  // String makes sure the numbers are printed as strings
   Serial.println( String(getal1) + " > " + String(getal2) + " == " + String(getal1 > getal2) );
   Serial.println( String(getal3) + " >= " + String(getal4) + " == " + String(getal3 >= getal4) );  
 
