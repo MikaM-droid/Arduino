@@ -1,38 +1,51 @@
-// Arduino Car ----------------------------------------------------------------------------------
+// Arduino Bluetooth Controlled Car ----------------------------------------------------------------
+// Controls a 2-wheeled car using an L298N motor driver and HC-05 Bluetooth module
+// Motor A (Left): ENA, IN1, IN2
+// Motor B (Right): ENB, IN3, IN4
+// Bluetooth: HC-05 module connected to pins 2(RX) and 7(TX)
+// Buzzer: Connected to pin 12 for sound feedback
 
 #include <SoftwareSerial.h>
+// SoftwareSerial library is used to create a virtual serial port on the Arduino which means
+// that the Arduino can communicate with the Bluetooth module using the Serial Monitor
 
-#define ENA 3
-#define IN1 4
-#define IN2 5
+// Motor control pins
+#define ENA 3    // Enable pin for Motor A (PWM)
+#define IN1 4    // Direction control for Motor A
+#define IN2 5    // Direction control for Motor A
 
-#define ENB 10
-#define IN3 9
-#define IN4 8
+#define ENB 10   // Enable pin for Motor B (PWM)
+#define IN3 9    // Direction control for Motor B
+#define IN4 8    // Direction control for Motor B
 
+// Bluetooth communication pins
 #define BT_RX 2  // Arduino RX connects to Bluetooth TX
 #define BT_TX 7  // Arduino TX connects to Bluetooth RX
 
 #define PIEP 12
 
+// Bluetooth serial communication
 SoftwareSerial BT(BT_RX, BT_TX);
 
-#define FORWARD 'F'
-#define BACKWARD 'B'
-#define LEFT 'L'
-#define RIGHT 'R'
-#define CIRCLE 'C'
-#define STOP 'X'
-#define BEEP 'Y'
-#define SQUARE 'S'
-#define START 'A'
-#define PAUSE 'P'
+// Command definitions for Bluetooth control
+#define FORWARD 'F'    // Move forward
+#define BACKWARD 'B'   // Move backward
+#define LEFT 'L'       // Turn left
+#define RIGHT 'R'      // Turn right
+#define CIRCLE 'C'     // Drive in a circle (not implemented)
+#define STOP 'X'       // Stop all movement
+#define BEEP 'Y'       // Activate buzzer
+#define SQUARE 'S'     // Drive in a square (not implemented)
+#define START 'A'      // Start sequence (not implemented)
+#define PAUSE 'P'      // Pause movement (not implemented)
+#define SPEED 'V'      // Adjust speed command
 
-#define SPEED 'V' 
+// Speed control parameters
+int currentSpeed = 150;  // Default speed (PWM value 0-255)
+int minSpeed = 80;       // Minimum speed to prevent motor stalling
+int maxSpeed = 255;      // Maximum speed (full power)
 
-int currentSpeed = 150;  // Default speed
-int minSpeed = 80;       // Minimum speed
-int maxSpeed = 255;      // Maximum speed 
+// ------------------------------------------------------------------------------------------------
 
 void setup() {
   // put your setup code here, to run once:
@@ -208,16 +221,16 @@ void executeCommand(char command) {
       beep(); 
       break;
     case SPEED:
-      processSpeedData();
+      processSpeedData();  // Handle speed adjustment
       break;
     case '0': case '1': case '2': case '3': case '4': 
     case '5': case '6': case '7': case '8': case '9':
-      // Handle direct speed digits (some apps might send digits directly)
+      // Handle direct speed input (0-9)
       int speedValue = command - '0';  // Convert ASCII to integer
       setSpeedFromValue(speedValue);
       break;
     default:
-      // Print unknown commands for debugging
+      // Log unknown commands for debugging
       Serial.print("Unknown command: ");
       Serial.write(command);
       Serial.print(" (");
@@ -226,7 +239,6 @@ void executeCommand(char command) {
       break;
   }
 }
-
 
 // Main Loop ---------------------------------------------------------------------------------------
 
