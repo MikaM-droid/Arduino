@@ -1,9 +1,17 @@
 #include <IRremote.hpp>
 
+// Define the pin for the IR receiver
 #define IR_REC_D_PIN 6
+
+// Create an object of the IRrecv class
+// This creates an instance of the IRrecv class to read IR signals on pin 6.
 IRrecv irrecv(IR_REC_D_PIN);
+
+// Define a variable to store the result of the IR signal
+// It doesn't require a big number of memory so byte is enough
 byte result; 
 
+// Define the buttons of the IR remote control
 #define BTN_1 69
 #define BTN_2 70
 #define BTN_3 71
@@ -29,7 +37,6 @@ byte result;
 #define LED_R 12
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
   irrecv.begin(IR_REC_D_PIN);
   
@@ -39,18 +46,23 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // Check if the IR receiver has received a signal
   bool remote_btn_clicked = irrecv.decode();
   if (remote_btn_clicked) {
+    // Store the result of the IR signal
     result = irrecv.decodedIRData.command;
+    // Handle the input
     handleInput(result);
     delay(300);
+    // Resume the IR receiver
     irrecv.resume();
   }
 }
 
 void handleInput (int irdata) {
+  // Define a variable to store the button
   String btn = "-";
+  // Switch case to handle the input
   switch (irdata) {
   case BTN_1:
     btn = "1";
@@ -121,5 +133,6 @@ void handleInput (int irdata) {
     btn = "nonexistent";
 }
 
-Serial.println("button " + btn + " - IR-CMD: " + String(irdata));
+  // Print the button and the IR command
+  Serial.println("button " + btn + " - IR-CMD: " + String(irdata));
 }

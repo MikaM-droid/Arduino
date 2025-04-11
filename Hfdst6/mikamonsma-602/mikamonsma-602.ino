@@ -1,9 +1,17 @@
+// IR remote control
+// The library IRremote is used to receive IR signals from a remote control
 #include <IRremote.hpp>
 
+// Define the pin for the IR receiver
 #define IR_REC_D_PIN 6
+
+// Create an object of the IRrecv class
 IRrecv irrecv(IR_REC_D_PIN);
+
+// Define a variable to store the result of the IR signal
 byte result; 
 
+// Define the buttons of the IR remote control
 #define BTN_1 69
 #define BTN_2 70
 #define BTN_3 71
@@ -26,25 +34,30 @@ byte result;
 #define BTN_OK 28
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
+  // Initialize the IR receiver
   irrecv.begin(IR_REC_D_PIN);
 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // Check if the IR receiver has received a signal
   bool remote_btn_clicked = irrecv.decode();
   if (remote_btn_clicked) {
+    // Store the result of the IR signal
     result = irrecv.decodedIRData.command;
+    // Handle the input
     handleInput(result);
     delay(500);
+    // Resume the IR receiver
     irrecv.resume();
   }
 }
 
 void handleInput (int irdata) {
+  // Define a variable to store the button
   String btn = "-";
+  // Switch case to handle the input
   switch (irdata) {
   case BTN_1:
     btn = "1";
@@ -101,5 +114,6 @@ void handleInput (int irdata) {
     btn = "nonexistent";
 }
 
-Serial.println("button " + btn + " - IR-CMD: " + String(irdata));
+  // Print the button and the IR command
+  Serial.println("button " + btn + " - IR-CMD: " + String(irdata));
 }
