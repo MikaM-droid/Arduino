@@ -32,12 +32,8 @@ SoftwareSerial BT(BT_RX, BT_TX);
 #define BACKWARD 'B'   // Move backward
 #define LEFT 'L'       // Turn left
 #define RIGHT 'R'      // Turn right
-#define CIRCLE 'C'     // Drive in a circle (not implemented)
-#define STOP 'X'       // Stop all movement
+#define STOP 'S'       // Stop all movement
 #define BEEP 'Y'       // Activate buzzer
-#define SQUARE 'S'     // Drive in a square (not implemented)
-#define START 'A'      // Start sequence (not implemented)
-#define PAUSE 'P'      // Pause movement (not implemented)
 #define SPEED 'V'      // Adjust speed command
 
 // Speed control parameters
@@ -71,66 +67,140 @@ void setup() {
 // Moving-----------------------------------------------------------------------------------------
 // Using int speed so the speed can be adjust in the loop as desired.
 
-void forward(int speed){
+// void forward(int speed){
+//   analogWrite(ENA, speed);
+//   digitalWrite(IN1, HIGH);
+//   digitalWrite(IN2, LOW);
+
+//   analogWrite(ENB, speed);
+//   digitalWrite(IN3, HIGH);
+//   digitalWrite(IN4, LOW);
+
+//   Serial.print("Moving forward, speed: ");
+//   Serial.println(speed);
+// }
+
+// void backward(int speed){
+//   analogWrite(ENA, speed);
+//   digitalWrite(IN1, LOW);
+//   digitalWrite(IN2, HIGH);
+
+//   analogWrite(ENB, speed);
+//   digitalWrite(IN3, LOW);
+//   digitalWrite(IN4, HIGH);
+
+//   Serial.print("Moving backwards, speed: ");
+//   Serial.println(speed);
+// }
+
+// // Turning---------------------------------------------------------------------------------------
+
+// void left(int speed){
+//   analogWrite(ENA, speed / 2); // Reduce left motor speed :)
+//   digitalWrite(IN1, HIGH);
+//   digitalWrite(IN2, LOW);
+
+//   analogWrite(ENB, speed);
+//   digitalWrite(IN3, HIGH);
+//   digitalWrite(IN4, LOW);
+
+//   Serial.print("Turning left, speed: ");
+//   Serial.println(speed);
+// }
+
+// void right(int speed){
+//   analogWrite(ENA, speed);
+//   digitalWrite(IN1, HIGH);
+//   digitalWrite(IN2, LOW);
+
+//   analogWrite(ENB, speed / 2); // Reduce right motor speed :)
+//   digitalWrite(IN3, HIGH);
+//   digitalWrite(IN4, LOW);
+
+//   Serial.print("Turning right, speed: ");
+//   Serial.println(speed);
+// }
+
+// // Stopping----------------------------------------------------------------------------------------
+
+// void stop(){
+//   analogWrite(ENA, 0);
+//   analogWrite(ENB, 0);
+
+//   Serial.println("Stopped");
+// }
+
+// Improved moving functions
+void forward(int speed) {
+  // Left motor
   analogWrite(ENA, speed);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
-
+  
+  // Right motor
   analogWrite(ENB, speed);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
-
+  
   Serial.print("Moving forward, speed: ");
   Serial.println(speed);
 }
 
-void backward(int speed){
+void backward(int speed) {
+  // Left motor
   analogWrite(ENA, speed);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
-
+  
+  // Right motor
   analogWrite(ENB, speed);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
-
-  Serial.print("Moving backwards, speed: ");
+  
+  Serial.print("Moving backward, speed: ");
   Serial.println(speed);
 }
 
-// Turning---------------------------------------------------------------------------------------
 
-void left(int speed){
-  analogWrite(ENA, speed / 2); // Reduce left motor speed :)
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-
+void left(int speed) {
+  // Left motor backward
+  analogWrite(ENA, speed);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  
+  // Right motor forward
   analogWrite(ENB, speed);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
-
+  
   Serial.print("Turning left, speed: ");
   Serial.println(speed);
 }
 
-void right(int speed){
+void right(int speed) {
+  // Left motor forward
   analogWrite(ENA, speed);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
-
-  analogWrite(ENB, speed / 2); // Reduce right motor speed :)
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-
+  
+  // Right motor backward
+  analogWrite(ENB, speed);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  
   Serial.print("Turning right, speed: ");
   Serial.println(speed);
 }
 
-// Stopping----------------------------------------------------------------------------------------
-
-void stop(){
+void stop() {
+  // Turn off both motors completely
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
-
+  
   Serial.println("Stopped");
 }
 
