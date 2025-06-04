@@ -23,7 +23,7 @@ SoftwareSerial BT(BT_RX, BT_TX);
 // Buzzer
 #define PIEP 12
 
-// Lijnsensoren
+// Line sensors
 #define LINE_LEFT A0
 #define LINE_CENTER A1
 #define LINE_RIGHT A2
@@ -34,7 +34,7 @@ SoftwareSerial BT(BT_RX, BT_TX);
 
 // Ultrasonic
 #define TRIG_PIN 6
-#define ECHO_PIN 11 // changed from D0 to D11
+#define ECHO_PIN 11
 
 // Bluetooth Commands
 #define FORWARD 'F'
@@ -84,8 +84,7 @@ void setup() {
 }
 
 //---------------------------------------------------
-// Movement functions
-
+// Movement forward
 void forward(int speed) {
   analogWrite(ENA, speed);
   digitalWrite(IN1, HIGH);
@@ -99,6 +98,8 @@ void forward(int speed) {
   Serial.println(speed);
 }
 
+//---------------------------------------------------
+// Backward
 void backward(int speed) {
   analogWrite(ENA, speed);
   digitalWrite(IN1, LOW);
@@ -112,20 +113,9 @@ void backward(int speed) {
   Serial.println(speed);
 }
 
+//---------------------------------------------------
+// Left
 void left(int speed) {
-  analogWrite(ENA, speed);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-
-  analogWrite(ENB, speed);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-
-  Serial.print("Turning left, speed: ");
-  Serial.println(speed);
-}
-
-void right(int speed) {
   analogWrite(ENA, speed);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
@@ -134,13 +124,31 @@ void right(int speed) {
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 
+  Serial.print("Turning left, speed: ");
+  Serial.println(speed);
+}
+
+//---------------------------------------------------
+// Right
+void right(int speed) {
+  analogWrite(ENA, speed);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+
+  analogWrite(ENB, speed);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+
   Serial.print("Turning right, speed: ");
   Serial.println(speed);
 }
 
+//---------------------------------------------------
+// Stop
 void stop() {
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
+
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -149,6 +157,8 @@ void stop() {
   Serial.println("Stopped");
 }
 
+//---------------------------------------------------
+// Beep
 void beep() {
   Serial.println("Beep!");
   digitalWrite(PIEP, LOW);
@@ -200,7 +210,7 @@ void setSpeedFromValue(int value) {
 }
 
 //---------------------------------------------------
-// Ultrasonic function
+// Ultrasonic distance
 
 long getDistance() {
   digitalWrite(TRIG_PIN, LOW);
@@ -208,84 +218,101 @@ long getDistance() {
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
-  long duration = pulseIn(ECHO_PIN, HIGH, 30000); // Timeout at 30ms = ~5m
+  long duration = pulseIn(ECHO_PIN, HIGH);
   return duration * 0.034 / 2;
 }
 
 //---------------------------------------------------
-// Autonomous driving function (Improved)
+// Autonomous mode
+
+int lastDistance = 0;
+int distanceChange = 0;
+bool isStuck = false;
 
 void autonomousMode() {
-  long rawDistance = getDistance();
-  long distance = rawDistance;
-
-  if (distance <= 0 || distance > 300) {
-    Serial.print("Invalid distance reading: ");
-    Serial.println(rawDistance);
-    distance = 300;
-  }
-
-  bool leftLine = digitalRead(LINE_LEFT);
-  bool centerLine = digitalRead(LINE_CENTER);
-  bool rightLine = digitalRead(LINE_RIGHT);
-
+  int distance = getDistance();
+  int leftLine = analogRead(LINE_LEFT);
+  int centerLine = analogRead(LINE_CENTER);
+  int rightLine = analogRead(LINE_RIGHT);
   bool objLeft = digitalRead(OBJECT_LEFT);
   bool objRight = digitalRead(OBJECT_RIGHT);
 
-  Serial.println("---- Autonomous Debug Info ----");
-  Serial.print("Distance (cm): ");
-  Serial.println(distance);
+  distanceChange = distance - lastDistance;
+  lastDistance = distance;
 
-  Serial.print("Line Sensors - Left: ");
-  Serial.print(leftLine);
-  Serial.print("  Center: ");
-  Serial.print(centerLine);
-  Serial.print("  Right: ");
-  Serial.println(rightLine);
+  Serial.print("Distance: "); Serial.println(distance);
+  Serial.print("Distance change: "); Serial.println(distanceChange);
+  Serial.print("Line sensors: L="); Serial.print(leftLine);
+  Serial.print(" C="); Serial.print(centerLine);
+  Serial.print(" R="); Serial.println(rightLine);
+  Serial.print("Object sensors: Left="); Serial.print(objLeft);
+  Serial.print(" Right="); Serial.println(objRight);
 
-  Serial.print("Object Sensors - Left: ");
-  Serial.print(objLeft);
-  Serial.print("  Right: ");
-  Serial.println(objRight);
-  Serial.println("--------------------------------");
+  int threshold = 500;
 
-  if (distance < 15 || objLeft == LOW || objRight == LOW) {
-    Serial.println("⚠️ Obstacle detected! Avoiding...");
+  bool obstacleDetected = false;
 
+  if (abs(distanceChange) < 2 && distance < 35) {
+    isStuck = true;
+  } else {
+    isStuck = false;
+  }
+
+  if (distance < 35 || objLeft == LOW || objRight == LOW || isStuck) {
+    obstacleDetected = true;
+  }
+
+  if (obstacleDetected) {
     stop();
-    delay(400);
+    beep();
+    delay(100);
+
     backward(currentSpeed);
-    delay(400);
+    delay(400);  // Increase backward duration
 
-    if (objRight == LOW) {
-      Serial.println("Turning left to avoid object on the right.");
-      left(currentSpeed);
+    if (isStuck) {
+      if (random(2) == 0) {
+        left(currentSpeed + 50);
+        delay(1000);
+      } else {
+        right(currentSpeed + 50);
+        delay(1000);
+      }
     } else {
-      Serial.println("Turning right to avoid object on the left or center.");
-      right(currentSpeed);
+      if (objLeft == LOW && objRight == HIGH) {
+        Serial.println("Obstacle on LEFT detected. Turning RIGHT.");
+        right(currentSpeed + 30);
+        delay(800);
+      } else if (objRight == LOW && objLeft == HIGH) {
+        Serial.println("Obstacle on RIGHT detected. Turning LEFT.");
+        left(currentSpeed + 30);
+        delay(800);
+      } else {
+        Serial.println("Obstacle detected in front or both sides. Turning randomly.");
+        if (random(2) == 0) {
+          left(currentSpeed + 30);
+        } else {
+          right(currentSpeed + 30);
+        }
+        delay(800);
+      }
     }
-
-    delay(500);
     return;
   }
 
-  if (leftLine == LOW && centerLine == HIGH && rightLine == LOW) {
-    Serial.println("Following line - Moving forward.");
+  if (leftLine < threshold && centerLine > threshold && rightLine < threshold) {
     forward(currentSpeed);
-  } else if (leftLine == HIGH && centerLine == LOW) {
-    Serial.println("Adjusting - Turning left.");
+  } else if (leftLine > threshold && centerLine < threshold) {
     left(currentSpeed);
-  } else if (rightLine == HIGH && centerLine == LOW) {
-    Serial.println("Adjusting - Turning right.");
+  } else if (rightLine > threshold && centerLine < threshold) {
     right(currentSpeed);
   } else {
-    Serial.println("⚠️ Line lost - Stopping.");
-    stop();
+    forward(currentSpeed);
   }
 }
 
 //---------------------------------------------------
-// Bluetooth command handler
+// Command handler
 
 void executeCommand(char command) {
   Serial.print("Command received: ");
@@ -331,6 +358,8 @@ void executeCommand(char command) {
 // Main loop
 
 void loop() {
+  randomSeed(analogRead(0));
+
   while (BT.available()) {
     char command = BT.read();
     Serial.print("Received: ");
@@ -342,3 +371,4 @@ void loop() {
     delay(10);
   }
 }
+

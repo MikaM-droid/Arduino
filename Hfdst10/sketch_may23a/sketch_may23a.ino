@@ -34,7 +34,7 @@ SoftwareSerial BT(BT_RX, BT_TX);
 
 // Ultrasonic
 #define TRIG_PIN 6
-#define ECHO_PIN 11 // changed from D0 to D11
+#define ECHO_PIN 11 // ✅ Updated from D0 to D11
 
 // Bluetooth Commands
 #define FORWARD 'F'
@@ -84,8 +84,7 @@ void setup() {
 }
 
 //---------------------------------------------------
-// Movement functions
-
+// Movement forward
 void forward(int speed) {
   analogWrite(ENA, speed);
   digitalWrite(IN1, HIGH);
@@ -99,6 +98,8 @@ void forward(int speed) {
   Serial.println(speed);
 }
 
+//---------------------------------------------------
+// Backward
 void backward(int speed) {
   analogWrite(ENA, speed);
   digitalWrite(IN1, LOW);
@@ -112,6 +113,8 @@ void backward(int speed) {
   Serial.println(speed);
 }
 
+//---------------------------------------------------
+// Left
 void left(int speed) {
   analogWrite(ENA, speed);
   digitalWrite(IN1, LOW);
@@ -125,6 +128,8 @@ void left(int speed) {
   Serial.println(speed);
 }
 
+//---------------------------------------------------
+// Right
 void right(int speed) {
   analogWrite(ENA, speed);
   digitalWrite(IN1, HIGH);
@@ -138,9 +143,12 @@ void right(int speed) {
   Serial.println(speed);
 }
 
+//---------------------------------------------------
+// Stop
 void stop() {
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
+
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -149,6 +157,8 @@ void stop() {
   Serial.println("Stopped");
 }
 
+//---------------------------------------------------
+// Beep
 void beep() {
   Serial.println("Beep!");
   digitalWrite(PIEP, LOW);
@@ -200,7 +210,7 @@ void setSpeedFromValue(int value) {
 }
 
 //---------------------------------------------------
-// Ultrasonic function
+// Ultrasonic distance
 
 long getDistance() {
   digitalWrite(TRIG_PIN, LOW);
@@ -208,84 +218,50 @@ long getDistance() {
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
-  long duration = pulseIn(ECHO_PIN, HIGH, 30000); // Timeout at 30ms = ~5m
+  long duration = pulseIn(ECHO_PIN, HIGH);
   return duration * 0.034 / 2;
 }
 
 //---------------------------------------------------
-// Autonomous driving function (Improved)
+// Autonomous mode
 
 void autonomousMode() {
-  long rawDistance = getDistance();
-  long distance = rawDistance;
-
-  if (distance <= 0 || distance > 300) {
-    Serial.print("Invalid distance reading: ");
-    Serial.println(rawDistance);
-    distance = 300;
-  }
-
+  int distance = getDistance();
   bool leftLine = digitalRead(LINE_LEFT);
   bool centerLine = digitalRead(LINE_CENTER);
   bool rightLine = digitalRead(LINE_RIGHT);
-
   bool objLeft = digitalRead(OBJECT_LEFT);
   bool objRight = digitalRead(OBJECT_RIGHT);
 
-  Serial.println("---- Autonomous Debug Info ----");
-  Serial.print("Distance (cm): ");
-  Serial.println(distance);
-
-  Serial.print("Line Sensors - Left: ");
-  Serial.print(leftLine);
-  Serial.print("  Center: ");
-  Serial.print(centerLine);
-  Serial.print("  Right: ");
-  Serial.println(rightLine);
-
-  Serial.print("Object Sensors - Left: ");
-  Serial.print(objLeft);
-  Serial.print("  Right: ");
-  Serial.println(objRight);
-  Serial.println("--------------------------------");
+  Serial.print("Afstand: "); Serial.println(distance);
+  Serial.print("Lijnsensoren: L="); Serial.print(leftLine);
+  Serial.print(" C="); Serial.print(centerLine);
+  Serial.print(" R="); Serial.println(rightLine);
 
   if (distance < 15 || objLeft == LOW || objRight == LOW) {
-    Serial.println("⚠️ Obstacle detected! Avoiding...");
-
     stop();
+    beep();
     delay(400);
     backward(currentSpeed);
     delay(400);
-
-    if (objRight == LOW) {
-      Serial.println("Turning left to avoid object on the right.");
-      left(currentSpeed);
-    } else {
-      Serial.println("Turning right to avoid object on the left or center.");
-      right(currentSpeed);
-    }
-
+    right(currentSpeed);
     delay(500);
     return;
   }
 
   if (leftLine == LOW && centerLine == HIGH && rightLine == LOW) {
-    Serial.println("Following line - Moving forward.");
     forward(currentSpeed);
   } else if (leftLine == HIGH && centerLine == LOW) {
-    Serial.println("Adjusting - Turning left.");
     left(currentSpeed);
   } else if (rightLine == HIGH && centerLine == LOW) {
-    Serial.println("Adjusting - Turning right.");
     right(currentSpeed);
   } else {
-    Serial.println("⚠️ Line lost - Stopping.");
     stop();
   }
 }
 
 //---------------------------------------------------
-// Bluetooth command handler
+// Command handler
 
 void executeCommand(char command) {
   Serial.print("Command received: ");
@@ -300,7 +276,7 @@ void executeCommand(char command) {
     case BEEP: beep(); break;
     case SPEED: processSpeedData(); break;
     case 'A':
-      Serial.println("Autonomous mode started...");
+      Serial.println("Autonome modus gestart...");
       while (true) {
         autonomousMode();
         delay(50);
@@ -308,7 +284,7 @@ void executeCommand(char command) {
           char stopCommand = BT.read();
           if (stopCommand == 'S') {
             stop();
-            Serial.println("Autonomous mode stopped.");
+            Serial.println("Autonome modus gestopt.");
             break;
           }
         }
