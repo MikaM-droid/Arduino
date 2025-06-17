@@ -1,4 +1,5 @@
-//---------------------------------------------------
+//--------------------------------------------------- CORRECT FILE!
+// To do: Make the sensor turn left and right to check for distances.
 // Arduino car
 
 #include <SoftwareSerial.h>
@@ -14,6 +15,9 @@
 #define ENB 10
 #define IN3 9
 #define IN4 8
+
+// Servo pin
+#define  SERVO_PIN 13
 
 // Bluetooth
 #define BT_RX 2
@@ -230,6 +234,7 @@ int distanceChange = 0;
 bool isStuck = false;
 
 void autonomousMode() {
+
   int distance = getDistance();
   int leftLine = analogRead(LINE_LEFT);
   int centerLine = analogRead(LINE_CENTER);
@@ -252,13 +257,13 @@ void autonomousMode() {
 
   bool obstacleDetected = false;
 
-  if (abs(distanceChange) < 2 && distance < 35) {
+  if (abs(distanceChange) < 2 && distance < 5) {
     isStuck = true;
   } else {
     isStuck = false;
   }
 
-  if (distance < 35 || objLeft == LOW || objRight == LOW || isStuck) {
+  if (distance < 5 || objLeft == LOW || objRight == LOW || isStuck) {
     obstacleDetected = true;
   }
 
